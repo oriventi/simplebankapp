@@ -8,17 +8,15 @@ package db
 import (
 	"context"
 	"database/sql"
-	"time"
 )
 
 const createTransfer = `-- name: CreateTransfer :one
 INSERT INTO transfers (
     from_account_id,
     to_account_id,
-    amount,
-    created_at
+    amount
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3
 ) RETURNING id, from_account_id, to_account_id, amount, created_at
 `
 
@@ -26,16 +24,10 @@ type CreateTransferParams struct {
 	FromAccountID int64
 	ToAccountID   int64
 	Amount        int64
-	CreatedAt     time.Time
 }
 
 func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error) {
-	row := q.db.QueryRowContext(ctx, createTransfer,
-		arg.FromAccountID,
-		arg.ToAccountID,
-		arg.Amount,
-		arg.CreatedAt,
-	)
+	row := q.db.QueryRowContext(ctx, createTransfer, arg.FromAccountID, arg.ToAccountID, arg.Amount)
 	var i Transfer
 	err := row.Scan(
 		&i.ID,

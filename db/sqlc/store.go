@@ -47,11 +47,19 @@ type TransferTxParams struct {
 	Amount        int64
 }
 
-func (store *Store) execTransfer(ctx context.Context, args TransferTxParams) (fromAcc Account, toAcc Account, err error) {
+type TransferTxResult struct {
+	FromAccount Account
+	ToAccount   Account
+	FromEntry   Entry
+	ToEntry     Entry
+	Transfer    Transfer
+}
+
+func (store *Store) execTransfer(ctx context.Context, args TransferTxParams) (result TransferTxResult, err error) {
 	err = store.execTx(ctx, func(q *Queries) error {
 
 		//create transfer
-		_, err = q.CreateTransfer(ctx, CreateTransferParams{
+		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: args.FromAccountID,
 			ToAccountID:   args.ToAccountID,
 			Amount:        args.Amount,
@@ -61,7 +69,7 @@ func (store *Store) execTransfer(ctx context.Context, args TransferTxParams) (fr
 		}
 
 		//create entries
-		_, err = q.CreateEntry(ctx, CreateEntryParams{
+		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: args.FromAccountID,
 			Amount:    -args.Amount,
 			CreatedAt: time.Now(),
@@ -70,7 +78,7 @@ func (store *Store) execTransfer(ctx context.Context, args TransferTxParams) (fr
 			return err
 		}
 
-		_, err = q.CreateEntry(ctx, CreateEntryParams{
+		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: args.ToAccountID,
 			Amount:    args.Amount,
 			CreatedAt: time.Now(),
@@ -84,7 +92,7 @@ func (store *Store) execTransfer(ctx context.Context, args TransferTxParams) (fr
 		q.LockAccountEntry(ctx, args.ToAccountID)
 
 		//update accounts
-		fromAcc, toAcc, err = addMoneyToTwoAccounts(
+		result.FromAccount, result.ToAccount, err = addMoneyToTwoAccounts(
 			ctx,
 			q, args.FromAccountID, -args.Amount,
 			args.ToAccountID, args.Amount,
