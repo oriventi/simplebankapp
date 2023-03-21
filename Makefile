@@ -9,6 +9,9 @@ createdb:
 dropdb:
 	docker exec -it postgres_container dropdb simple_bank
 
+test:
+	go test -v -cover ./...
+
 migratecreate:
 	migrate create -ext sql -dir db/migration -seq init_schema
 migrateup:
@@ -18,4 +21,4 @@ migratedown:
 sqlc:
 	docker run --rm -v "C:/Users/adria/Desktop/Programmieren/golang/simplebankapp:/src" -w /src kjconroy/sqlc generate
 
-.PHONY: createdb, dropdb, startdb, stopdb, initdb, migrateup, migratedown, sqlc, migratecreate
+.PHONY: createdb, dropdb, startdb, stopdb, initdb, migrateup, migratedown, sqlc, migratecreate, test
