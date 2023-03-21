@@ -26,7 +26,7 @@ jobs:
           --health-retries 5
         ports:
           - 3808:5432
-          
+
     steps:
 
     - name: Set up Go
@@ -41,7 +41,7 @@ jobs:
     - name: Install golang-migrate
       run: |
         curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
-        mv migrate.linux-amd64 /usr/bin/migrate
+        mv migrate /usr/bin/migrate
         migrate which
 
     - name: Run migrations
