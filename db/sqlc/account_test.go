@@ -20,8 +20,6 @@ func TestCreateAccount(t *testing.T) {
 		acc, err := testQueries.CreateAccount(context.Background(), arg)
 		require.NoError(t, err)
 		require.NotEmpty(t, acc)
-
-		testQueries.DeleteAccount(context.Background(), acc.ID)
 	}
 }
 

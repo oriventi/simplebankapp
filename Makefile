@@ -11,6 +11,8 @@ dropdb:
 
 test:
 	go test -v -cover ./...
+server:
+	go run main.go
 
 migratecreate:
 	migrate create -ext sql -dir db/migration -seq init_schema
@@ -21,4 +23,4 @@ migratedown:
 sqlc:
 	docker run --rm -v "C:/Users/adria/Desktop/Programmieren/golang/simplebankapp:/src" -w /src kjconroy/sqlc generate
 
-.PHONY: createdb, dropdb, startdb, stopdb, initdb, migrateup, migratedown, sqlc, migratecreate, test
+.PHONY: createdb dropdb startdb stopdb initdb migrateup migratedown sqlc migratecreate test server
