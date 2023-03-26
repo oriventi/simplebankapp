@@ -7,19 +7,21 @@ import (
 	"testing"
 
 	_ "github.com/lib/pq"
+	"github.com/oriventi/simplebank/util"
 )
 
 var testQueries *Queries
 var conn *sql.DB
 
-const (
-	dbDriver = "postgres"
-	dbSource = "postgres://root:secret@localhost:3808/simple_bank?sslmode=disable"
-)
-
 func TestMain(m *testing.M) {
+
+	config, confErr := util.LoadConfig("../..")
+	if confErr != nil {
+		log.Fatal("Could not load config")
+	}
+
 	var err error
-	conn, err = sql.Open(dbDriver, dbSource)
+	conn, err = sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("Couldn't open connection: ", err)
 	}

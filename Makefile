@@ -23,4 +23,7 @@ migratedown:
 sqlc:
 	docker run --rm -v "C:/Users/adria/Desktop/Programmieren/golang/simplebankapp:/src" -w /src kjconroy/sqlc generate
 
-.PHONY: createdb dropdb startdb stopdb initdb migrateup migratedown sqlc migratecreate test server
+mock:
+	mockgen -package mockdb -destination db/mock/store.go github.com/oriventi/simplebank/db/sqlc Store
+
+.PHONY: createdb dropdb startdb stopdb initdb migrateup migratedown sqlc migratecreate test server mock

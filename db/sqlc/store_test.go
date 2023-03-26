@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/oriventi/simplebank/util"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,9 +20,9 @@ func TestTransferTx(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		go func() {
-			expectedFromAcc, _ := store.CreateRandomAccount()
-			expectedToAcc, _ := store.CreateRandomAccount()
-			result, err := store.execTransfer(context.Background(), TransferTxParams{
+			expectedFromAcc, _ := CreateRandomAccount(store)
+			expectedToAcc, _ := CreateRandomAccount(store)
+			result, err := store.TransferTx(context.Background(), TransferTxParams{
 				FromAccountID: expectedFromAcc.ID,
 				ToAccountID:   expectedToAcc.ID,
 				Amount:        amount,
@@ -61,4 +62,15 @@ func TestTransferTx(t *testing.T) {
 		testQueries.DeleteAccount(context.Background(), result.FromAccount.ID)
 		testQueries.DeleteAccount(context.Background(), result.ToAccount.ID)
 	}
+
+}
+
+func CreateRandomAccount(store Store) (Account, error) {
+	arg := CreateAccountParams{
+		Owner:    util.RandomOwner(),
+		Balance:  util.RandomBalance(),
+		Currency: util.RandomCurrency(),
+	}
+	createdAcc, err := store.CreateAccount(context.Background(), arg)
+	return createdAcc, err
 }

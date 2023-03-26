@@ -41,7 +41,6 @@ func TestAddAccountBalance(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, acc.ID, newAcc.ID)
 		require.Equal(t, acc.Balance+amount, newAcc.Balance)
-		testQueries.DeleteAccount(context.Background(), acc.ID)
 	}
 }
 
@@ -134,7 +133,6 @@ func TestListAccounts(t *testing.T) {
 		for i := range accs {
 			//Test all accounts
 			require.NotEmpty(t, foundAccs1[i].ID)
-			require.NotEmpty(t, foundAccs1[i].Balance)
 			require.NotEmpty(t, foundAccs1[i].CreatedAt)
 			require.NotEmpty(t, foundAccs1[i].Currency)
 			require.NotEmpty(t, foundAccs1[i].Owner)

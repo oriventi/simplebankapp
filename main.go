@@ -6,25 +6,24 @@ import (
 
 	"github.com/oriventi/simplebank/api"
 	db "github.com/oriventi/simplebank/db/sqlc"
+	"github.com/oriventi/simplebank/util"
 
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbDriver   = "postgres"
-	dbSource   = "postgres://root:secret@localhost:3808/simple_bank?sslmode=disable"
-	serverAddr = "0.0.0.0:8080"
-)
-
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config, confErr := util.LoadConfig(".")
+	if confErr != nil {
+		log.Fatal("cannot load data: ", confErr)
+	}
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db: ", err)
 	}
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
-	err = server.Start(serverAddr)
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("cannot connect to api: ", err)
 	}
