@@ -97,6 +97,7 @@ func TestGetAccountApi(t *testing.T) {
 		})
 
 	}
+
 }
 
 func randomMockAccount() db.Account {
