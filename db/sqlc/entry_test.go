@@ -6,18 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oriventi/simplebank/util"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateEntry(t *testing.T) {
 
 	var amountInEntry int64 = 15
-	acc, _ := testQueries.CreateAccount(context.Background(), CreateAccountParams{
-		Owner:    util.RandomOwner(),
-		Currency: util.RandomCurrency(),
-		Balance:  util.RandomBalance(),
-	})
+	acc := createTestAccount(t)
 
 	args := CreateEntryParams{
 		AccountID: acc.ID,
@@ -35,11 +30,7 @@ func TestCreateEntry(t *testing.T) {
 
 func TestGetEntry(t *testing.T) {
 	var amountInEntry int64 = 15
-	acc, _ := testQueries.CreateAccount(context.Background(), CreateAccountParams{
-		Owner:    util.RandomOwner(),
-		Currency: util.RandomCurrency(),
-		Balance:  util.RandomBalance(),
-	})
+	acc := createTestAccount(t)
 
 	args := CreateEntryParams{
 		AccountID: acc.ID,
@@ -57,11 +48,7 @@ func TestGetEntry(t *testing.T) {
 
 func TestDeleteEntry(t *testing.T) {
 	var amountInEntry int64 = 15
-	acc, _ := testQueries.CreateAccount(context.Background(), CreateAccountParams{
-		Owner:    util.RandomOwner(),
-		Currency: util.RandomCurrency(),
-		Balance:  util.RandomBalance(),
-	})
+	acc := createTestAccount(t)
 
 	args := CreateEntryParams{
 		AccountID: acc.ID,
@@ -85,11 +72,7 @@ func TestListEntries(t *testing.T) {
 	//CREATE EVERYTHING
 	for i := 0; i < runs; i++ {
 		var amountInEntry int64 = 15
-		acc, _ := testQueries.CreateAccount(context.Background(), CreateAccountParams{
-			Owner:    util.RandomOwner(),
-			Currency: util.RandomCurrency(),
-			Balance:  util.RandomBalance(),
-		})
+		acc := createTestAccount(t)
 
 		args := CreateEntryParams{
 			AccountID: acc.ID,

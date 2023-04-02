@@ -20,8 +20,8 @@ func TestTransferTx(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		go func() {
-			expectedFromAcc, _ := CreateRandomAccount(store)
-			expectedToAcc, _ := CreateRandomAccount(store)
+			expectedFromAcc := createTestAccount(t)
+			expectedToAcc := createTestAccount(t)
 			result, err := store.TransferTx(context.Background(), TransferTxParams{
 				FromAccountID: expectedFromAcc.ID,
 				ToAccountID:   expectedToAcc.ID,

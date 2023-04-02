@@ -8,19 +8,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateAccount(t *testing.T) {
-	n := 5
-
-	for i := 0; i < n; i++ {
-		arg := CreateAccountParams{
-			Owner:    util.RandomOwner(),
-			Balance:  util.RandomBalance(),
-			Currency: util.RandomCurrency(),
-		}
-		acc, err := testQueries.CreateAccount(context.Background(), arg)
-		require.NoError(t, err)
-		require.NotEmpty(t, acc)
+func createTestAccount(t *testing.T) Account {
+	userArgs := CreateUserParams{
+		Username:       util.RandomOwner(),
+		HashedPassword: util.RandomString(10),
+		FullName:       util.RandomOwner(),
+		Email:          util.RandomEmail(),
 	}
+	user := createTestUser(t, userArgs)
+
+	accArgs := CreateAccountParams{
+		Owner:    user.Username,
+		Balance:  util.RandomBalance(),
+		Currency: util.RandomCurrency(),
+	}
+	acc, err := testQueries.CreateAccount(context.Background(), accArgs)
+	require.NoError(t, err)
+	require.Equal(t, accArgs.Balance, acc.Balance)
+	require.Equal(t, accArgs.Currency, acc.Currency)
+	require.Equal(t, accArgs.Owner, acc.Owner)
+	return acc
+}
+
+func TestCreateAccount(t *testing.T) {
+	createTestAccount(t)
 }
 
 func TestAddAccountBalance(t *testing.T) {
@@ -28,12 +39,7 @@ func TestAddAccountBalance(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		amount := int64(15 + i*3) //something random
-		arg := CreateAccountParams{
-			Owner:    util.RandomOwner(),
-			Balance:  util.RandomBalance(),
-			Currency: util.RandomCurrency(),
-		}
-		acc, _ := testQueries.CreateAccount(context.Background(), arg)
+		acc := createTestAccount(t)
 		newAcc, err := testQueries.AddAccountBalance(context.Background(), AddAccountBalanceParams{
 			ID:     acc.ID,
 			Amount: amount,
@@ -49,12 +55,7 @@ func TestUpdateAccountBalance(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		newBalance := int64(15 + i*3) //something random
-		arg := CreateAccountParams{
-			Owner:    util.RandomOwner(),
-			Balance:  util.RandomBalance(),
-			Currency: util.RandomCurrency(),
-		}
-		acc, _ := testQueries.CreateAccount(context.Background(), arg)
+		acc := createTestAccount(t)
 		newAcc, err := testQueries.UpdateAccount(context.Background(), UpdateAccountParams{
 			ID:      acc.ID,
 			Balance: newBalance,
@@ -70,12 +71,7 @@ func TestDeleteAccount(t *testing.T) {
 	n := 5
 
 	for i := 0; i < n; i++ {
-		arg := CreateAccountParams{
-			Owner:    util.RandomOwner(),
-			Balance:  util.RandomBalance(),
-			Currency: util.RandomCurrency(),
-		}
-		acc, _ := testQueries.CreateAccount(context.Background(), arg)
+		acc := createTestAccount(t)
 		foundAcc, err := testQueries.GetAccount(context.Background(), acc.ID)
 		require.Equal(t, acc, foundAcc)
 		require.NoError(t, err)
@@ -93,13 +89,7 @@ func TestDeleteAccount(t *testing.T) {
 func TestGetAccount(t *testing.T) {
 	n := 5
 	for i := 0; i < n; i++ {
-		arg := CreateAccountParams{
-			Owner:    util.RandomOwner(),
-			Balance:  util.RandomBalance(),
-			Currency: util.RandomCurrency(),
-		}
-		acc, _ := testQueries.CreateAccount(context.Background(), arg)
-
+		acc := createTestAccount(t)
 		foundAcc, err := testQueries.GetAccount(context.Background(), acc.ID)
 		require.NoError(t, err)
 		require.Equal(t, acc.ID, foundAcc.ID)
@@ -117,12 +107,7 @@ func TestListAccounts(t *testing.T) {
 	for i := 0; i < n; i++ {
 		accs := make([]Account, n)
 		for i := 0; i < n; i++ {
-			arg := CreateAccountParams{
-				Owner:    util.RandomOwner(),
-				Balance:  util.RandomBalance(),
-				Currency: util.RandomCurrency(),
-			}
-			accs[i], _ = testQueries.CreateAccount(context.Background(), arg)
+			accs[i] = createTestAccount(t)
 		}
 
 		foundAccs1, err1 := testQueries.ListAccounts(context.Background(), ListAccountsParams{
@@ -162,12 +147,7 @@ func TestListAccounts(t *testing.T) {
 func TestLockAccount(t *testing.T) {
 	n := 5
 	for i := 0; i < n; i++ {
-		arg := CreateAccountParams{
-			Owner:    util.RandomOwner(),
-			Balance:  util.RandomBalance(),
-			Currency: util.RandomCurrency(),
-		}
-		acc, _ := testQueries.CreateAccount(context.Background(), arg)
+		acc := createTestAccount(t)
 		tx, txErr := conn.Begin()
 		require.NoError(t, txErr)
 		q := New(tx)

@@ -20,10 +20,15 @@ migrateup:
 	migrate -path db/migration -database "postgres://root:secret@localhost:3808/simple_bank?sslmode=disable" -verbose up
 migratedown:
 	migrate -path db/migration -database "postgres://root:secret@localhost:3808/simple_bank?sslmode=disable" -verbose down
+migrateup1:
+	migrate -path db/migration -database "postgres://root:secret@localhost:3808/simple_bank?sslmode=disable" -verbose up 1
+migratedown1:
+	migrate -path db/migration -database "postgres://root:secret@localhost:3808/simple_bank?sslmode=disable" -verbose down 1
+
 sqlc:
 	docker run --rm -v "C:/Users/adria/Desktop/Programmieren/golang/simplebankapp:/src" -w /src kjconroy/sqlc generate
 
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/oriventi/simplebank/db/sqlc Store
 
-.PHONY: createdb dropdb startdb stopdb initdb migrateup migratedown sqlc migratecreate test server mock
+.PHONY: createdb dropdb startdb stopdb initdb migrateup migratedown migrateup1 migratedown1 sqlc migratecreate test server mock

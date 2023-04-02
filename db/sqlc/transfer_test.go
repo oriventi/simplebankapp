@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/oriventi/simplebank/util"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,19 +11,8 @@ func TestCreateTransfer(t *testing.T) {
 
 	var amountToTransfer int64 = 20
 
-	acc1, err1 := testQueries.CreateAccount(context.Background(), CreateAccountParams{
-		Owner:    util.RandomOwner(),
-		Balance:  util.RandomBalance(),
-		Currency: util.RandomCurrency(),
-	})
-	require.NoError(t, err1)
-	acc2, err2 := testQueries.CreateAccount(context.Background(), CreateAccountParams{
-		Owner:    util.RandomOwner(),
-		Balance:  util.RandomBalance(),
-		Currency: util.RandomCurrency(),
-	})
-	require.NoError(t, err2)
-
+	acc1 := createTestAccount(t)
+	acc2 := createTestAccount(t)
 	args := CreateTransferParams{
 		FromAccountID: acc1.ID,
 		ToAccountID:   acc2.ID,
@@ -45,18 +33,8 @@ func TestGetTransfer(t *testing.T) {
 
 	var amountToTransfer int64 = 20
 
-	acc1, err1 := testQueries.CreateAccount(context.Background(), CreateAccountParams{
-		Owner:    util.RandomOwner(),
-		Balance:  util.RandomBalance(),
-		Currency: util.RandomCurrency(),
-	})
-	require.NoError(t, err1)
-	acc2, err2 := testQueries.CreateAccount(context.Background(), CreateAccountParams{
-		Owner:    util.RandomOwner(),
-		Balance:  util.RandomBalance(),
-		Currency: util.RandomCurrency(),
-	})
-	require.NoError(t, err2)
+	acc1 := createTestAccount(t)
+	acc2 := createTestAccount(t)
 
 	args := CreateTransferParams{
 		FromAccountID: acc1.ID,
@@ -85,16 +63,8 @@ func TestListTransfers(t *testing.T) {
 	//CREATE EVERYTHING
 	for i := 0; i < runs; i++ {
 
-		fromAccs[i], _ = testQueries.CreateAccount(context.Background(), CreateAccountParams{
-			Owner:    util.RandomOwner(),
-			Balance:  util.RandomBalance(),
-			Currency: util.RandomCurrency(),
-		})
-		toAccs[i], _ = testQueries.CreateAccount(context.Background(), CreateAccountParams{
-			Owner:    util.RandomOwner(),
-			Balance:  util.RandomBalance(),
-			Currency: util.RandomCurrency(),
-		})
+		fromAccs[i] = createTestAccount(t)
+		toAccs[i] = createTestAccount(t)
 
 		args := CreateTransferParams{
 			FromAccountID: fromAccs[i].ID,
