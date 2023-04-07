@@ -1,5 +1,8 @@
+initnetwork:
+	docker network create bank-network
+
 initdb:
-	docker run -d --name postgres_container -p3808:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret postgres:alpine3.17
+	docker run -d --name postgres_container --network bank-network -p3808:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret postgres:alpine3.17
 startdb:
 	docker start postgres_container
 stopdb:
@@ -13,6 +16,14 @@ test:
 	go test -v -cover ./...
 server:
 	go run main.go
+initdockerserver:
+	make stopdb
+	make startdb
+	docker run --name simplebank --network bank-network -p8080:8080 -e DB_SOURCE="postgresql://root:secret@postgres_container/simple_bank?sslmode=disable" simplebank:latest
+startdockerserver:
+	docker start simplebank
+stopdockerserver:
+	docker stop simplebank
 
 migratecreate:
 	migrate create -ext sql -dir db/migration -seq init_schema
@@ -31,4 +42,7 @@ sqlc:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/oriventi/simplebank/db/sqlc Store
 
-.PHONY: createdb dropdb startdb stopdb initdb migrateup migratedown migrateup1 migratedown1 sqlc migratecreate test server mock
+dockerimg:
+	docker build -t simplebank:latest .
+
+.PHONY: startdockerserver stopdockerserver initdockerserver dockerimg createdb dropdb startdb stopdb initdb migrateup migratedown migrateup1 migratedown1 sqlc migratecreate test server mock
