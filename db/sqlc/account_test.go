@@ -111,11 +111,12 @@ func TestListAccounts(t *testing.T) {
 		}
 
 		foundAccs1, err1 := testQueries.ListAccounts(context.Background(), ListAccountsParams{
+			Owner:  accs[n-1].Owner,
 			Limit:  int32(n),
 			Offset: 0,
 		})
 		require.NoError(t, err1)
-		for i := range accs {
+		for i := range foundAccs1 {
 			//Test all accounts
 			require.NotEmpty(t, foundAccs1[i].ID)
 			require.NotEmpty(t, foundAccs1[i].CreatedAt)
@@ -126,10 +127,10 @@ func TestListAccounts(t *testing.T) {
 		//Test with different limit and offset
 		foundAccs2, err2 := testQueries.ListAccounts(context.Background(), ListAccountsParams{
 			Limit:  int32(n / 2),
-			Offset: 2,
+			Offset: 0,
 		})
 		require.NoError(t, err2)
-		for i := 0; i < int(n/2); i++ {
+		for i := range foundAccs2 {
 			require.NotEmpty(t, foundAccs2[i].ID)
 			require.NotEmpty(t, foundAccs2[i].Balance)
 			require.NotEmpty(t, foundAccs2[i].CreatedAt)

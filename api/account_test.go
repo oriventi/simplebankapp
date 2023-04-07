@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	mockdb "github.com/oriventi/simplebank/db/mock"
@@ -18,12 +19,14 @@ import (
 )
 
 func TestListAccountsApi(t *testing.T) {
+	owner := "testimesti"
 	accs := []db.Account{
-		randomMockAccount(), randomMockAccount(),
-		randomMockAccount(), randomMockAccount(),
-		randomMockAccount(),
+		randomMockAccount(owner), randomMockAccount(owner),
+		randomMockAccount(owner), randomMockAccount(owner),
+		randomMockAccount(owner),
 	}
 	args := db.ListAccountsParams{
+		Owner:  owner,
 		Limit:  5,
 		Offset: 1,
 	}
@@ -38,7 +41,7 @@ func TestListAccountsApi(t *testing.T) {
 			name: "OK",
 			args: args,
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().ListAccounts(gomock.Any(), gomock.Eq(db.ListAccountsParams{Limit: 5, Offset: 0})).
+				store.EXPECT().ListAccounts(gomock.Any(), gomock.Eq(db.ListAccountsParams{Owner: owner, Limit: 5, Offset: 0})).
 					Times(1).
 					Return(accs, nil)
 			},
@@ -61,7 +64,7 @@ func TestListAccountsApi(t *testing.T) {
 			name: "NotFound",
 			args: args,
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().ListAccounts(gomock.Any(), gomock.Eq(db.ListAccountsParams{Limit: 5, Offset: 0})).
+				store.EXPECT().ListAccounts(gomock.Any(), gomock.Eq(db.ListAccountsParams{Owner: owner, Limit: 5, Offset: 0})).
 					Times(1).
 					Return([]db.Account{}, sql.ErrNoRows)
 			},
@@ -73,7 +76,7 @@ func TestListAccountsApi(t *testing.T) {
 			name: "InternalServerError",
 			args: args,
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().ListAccounts(gomock.Any(), gomock.Eq(db.ListAccountsParams{Limit: 5, Offset: 0})).
+				store.EXPECT().ListAccounts(gomock.Any(), gomock.Eq(db.ListAccountsParams{Owner: owner, Limit: 5, Offset: 0})).
 					Times(1).
 					Return(accs, sql.ErrConnDone)
 			},
@@ -88,7 +91,7 @@ func TestListAccountsApi(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			store := mockdb.NewMockStore(ctrl)
-			server := NewServer(store)
+			server := newTestServer(t, store)
 
 			tc.buildStubs(store)
 
@@ -96,6 +99,9 @@ func TestListAccountsApi(t *testing.T) {
 			url := fmt.Sprintf("/accounts?page_id=%d&page_size=%d", tc.args.Offset, tc.args.Limit)
 			request, reqErr := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, reqErr)
+			token, tokenErr := server.tokenMaker.CreateToken(owner, time.Minute)
+			require.NoError(t, tokenErr)
+			request.Header.Set(AuthorizationHeaderKey, fmt.Sprintf("Bearer %s", token))
 			server.router.ServeHTTP(recorder, request)
 
 			tc.checkResponse(t, recorder)
@@ -105,7 +111,7 @@ func TestListAccountsApi(t *testing.T) {
 }
 
 func TestCreateAccountApi(t *testing.T) {
-	acc := randomMockAccount()
+	acc := randomMockAccount("test")
 	args := db.CreateAccountParams{
 		Owner:    acc.Owner,
 		Balance:  0,
@@ -167,10 +173,13 @@ func TestCreateAccountApi(t *testing.T) {
 			tc.buildStubs(store)
 
 			recorder := httptest.NewRecorder()
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			url := "/accounts"
 			request, reqErr := http.NewRequest(http.MethodPost, url, bytes.NewReader(tc.body))
 			require.NoError(t, reqErr)
+			token, tokenErr := server.tokenMaker.CreateToken(acc.Owner, time.Minute)
+			require.NoError(t, tokenErr)
+			request.Header.Set(AuthorizationHeaderKey, fmt.Sprintf("Bearer %s", token))
 			server.router.ServeHTTP(recorder, request)
 
 			tc.checkResponse(t, recorder)
@@ -179,7 +188,7 @@ func TestCreateAccountApi(t *testing.T) {
 }
 
 func TestGetAccountApi(t *testing.T) {
-	acc := randomMockAccount()
+	acc := randomMockAccount("test")
 
 	testCases := []struct {
 		name          string
@@ -246,12 +255,15 @@ func TestGetAccountApi(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 
 			tc.buildStubs(store)
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/accounts/%d", tc.ID)
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
+			token, tokenErr := server.tokenMaker.CreateToken("test", time.Minute)
+			require.NoError(t, tokenErr)
+			request.Header.Set(AuthorizationHeaderKey, fmt.Sprintf("Bearer %s", token))
 
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
@@ -261,10 +273,10 @@ func TestGetAccountApi(t *testing.T) {
 
 }
 
-func randomMockAccount() db.Account {
+func randomMockAccount(owner string) db.Account {
 	return db.Account{
 		ID:       util.RandomInt(1, 1000),
-		Owner:    util.RandomOwner(),
+		Owner:    owner,
 		Balance:  util.RandomBalance(),
 		Currency: util.RandomCurrency(),
 	}

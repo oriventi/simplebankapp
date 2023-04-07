@@ -16,9 +16,11 @@ func createTestUser(t *testing.T, args CreateUserParams) User {
 }
 
 func TestCreateUser(t *testing.T) {
+	hashedPassword, hashErr := util.HashPassword(util.RandomString(7))
+	require.NoError(t, hashErr)
 	args := CreateUserParams{
 		Username:       util.RandomOwner(),
-		HashedPassword: util.RandomString(10),
+		HashedPassword: hashedPassword,
 		FullName:       util.RandomOwner(),
 		Email:          util.RandomEmail(),
 	}
@@ -30,9 +32,11 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
+	hashedPassword, hashErr := util.HashPassword(util.RandomString(7))
+	require.NoError(t, hashErr)
 	args := CreateUserParams{
 		Username:       util.RandomOwner(),
-		HashedPassword: util.RandomString(10),
+		HashedPassword: hashedPassword,
 		FullName:       util.RandomOwner(),
 		Email:          util.RandomEmail(),
 	}
