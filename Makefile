@@ -2,7 +2,7 @@ initnetwork:
 	docker network create bank-network
 
 initdb:
-	docker run -d --name postgres_container --network bank-network -p3808:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret postgres:alpine3.17
+	docker run -d --name postgres_container --network bank-network -p5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret postgres:alpine3.17
 startdb:
 	docker start postgres_container
 stopdb:
@@ -28,13 +28,13 @@ stopdockerserver:
 migratecreate:
 	migrate create -ext sql -dir db/migration -seq init_schema
 migrateup:
-	migrate -path db/migration -database "postgres://root:secret@localhost:3808/simple_bank?sslmode=disable" -verbose up
+	migrate -path db/migration -database "postgres://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up
 migratedown:
-	migrate -path db/migration -database "postgres://root:secret@localhost:3808/simple_bank?sslmode=disable" -verbose down
+	migrate -path db/migration -database "postgres://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down
 migrateup1:
-	migrate -path db/migration -database "postgres://root:secret@localhost:3808/simple_bank?sslmode=disable" -verbose up 1
+	migrate -path db/migration -database "postgres://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up 1
 migratedown1:
-	migrate -path db/migration -database "postgres://root:secret@localhost:3808/simple_bank?sslmode=disable" -verbose down 1
+	migrate -path db/migration -database "postgres://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
 
 sqlc:
 	docker run --rm -v "C:/Users/adria/Desktop/Programmieren/golang/simplebankapp:/src" -w /src kjconroy/sqlc generate
@@ -45,4 +45,10 @@ mock:
 dockerimg:
 	docker build -t simplebank:latest .
 
-.PHONY: startdockerserver stopdockerserver initdockerserver dockerimg createdb dropdb startdb stopdb initdb migrateup migratedown migrateup1 migratedown1 sqlc migratecreate test server mock
+proto:
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative --go-grpc_out=pb --go-grpc_opt=paths=source_relative --grpc-gateway_out=pb --grpc-gateway_opt=paths=source_relative proto/*.proto
+evans:
+	evans --host localhost --port 9090 --path proto -r repl
+
+
+.PHONY: startdockerserver stopdockerserver initdockerserver dockerimg createdb dropdb startdb stopdb initdb migrateup migratedown migrateup1 migratedown1 sqlc migratecreate test server mock proto

@@ -99,7 +99,8 @@ func TestListAccountsApi(t *testing.T) {
 			url := fmt.Sprintf("/accounts?page_id=%d&page_size=%d", tc.args.Offset, tc.args.Limit)
 			request, reqErr := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, reqErr)
-			token, tokenErr := server.tokenMaker.CreateToken(owner, time.Minute)
+			token, payload, tokenErr := server.tokenMaker.CreateToken(owner, time.Minute)
+			require.NotEmpty(t, payload)
 			require.NoError(t, tokenErr)
 			request.Header.Set(AuthorizationHeaderKey, fmt.Sprintf("Bearer %s", token))
 			server.router.ServeHTTP(recorder, request)
@@ -177,8 +178,9 @@ func TestCreateAccountApi(t *testing.T) {
 			url := "/accounts"
 			request, reqErr := http.NewRequest(http.MethodPost, url, bytes.NewReader(tc.body))
 			require.NoError(t, reqErr)
-			token, tokenErr := server.tokenMaker.CreateToken(acc.Owner, time.Minute)
+			token, payload, tokenErr := server.tokenMaker.CreateToken(acc.Owner, time.Minute)
 			require.NoError(t, tokenErr)
+			require.NotEmpty(t, payload)
 			request.Header.Set(AuthorizationHeaderKey, fmt.Sprintf("Bearer %s", token))
 			server.router.ServeHTTP(recorder, request)
 
@@ -261,8 +263,9 @@ func TestGetAccountApi(t *testing.T) {
 			url := fmt.Sprintf("/accounts/%d", tc.ID)
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
-			token, tokenErr := server.tokenMaker.CreateToken("test", time.Minute)
+			token, payload, tokenErr := server.tokenMaker.CreateToken("test", time.Minute)
 			require.NoError(t, tokenErr)
+			require.NotEmpty(t, payload)
 			request.Header.Set(AuthorizationHeaderKey, fmt.Sprintf("Bearer %s", token))
 
 			server.router.ServeHTTP(recorder, request)
